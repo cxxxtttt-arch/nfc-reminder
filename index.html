@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>NFC Reminder</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             background: #f5f5f5;
         }
 
@@ -17,7 +18,7 @@
             max-width: 400px;
             margin: auto;
             background: white;
-            padding: 35px 20px;
+            padding: 30px 20px;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
@@ -31,9 +32,50 @@
             margin: 25px 0;
         }
 
+        input {
+            width: 90%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 8px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .send {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .stop {
+            background: #e53935;
+            color: white;
+        }
+
         .status {
-            color: green;
             font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .active {
+            color: green;
+        }
+
+        .inactive {
+            color: red;
+        }
+
+        #timer {
+            font-size: 18px;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -48,13 +90,126 @@
         Don't forget to take your things!
     </p>
 
-    <p class="status">
-        ● Reminder is active
+    <input
+        type="tel"
+        id="phone"
+        placeholder="Enter your phone number"
+    >
+
+    <p id="status" class="status inactive">
+        ● Reminder is INACTIVE
     </p>
-<a href="sms:?body=Don't%20forget%20to%20take%20your%20things!">
-    <button>Send Reminder</button>
-</a>
+
+    <button class="send" onclick="startReminder()">
+        Start Reminder
+    </button>
+
+    <button class="stop" onclick="stopReminder()">
+        Stop Reminder
+    </button>
+
+    <p id="timer"></p>
+
 </div>
+
+<script>
+
+let reminderActive = false;
+let countdown;
+let remainingSeconds = 300;
+
+function startReminder() {
+
+    const phone = document.getElementById("phone").value;
+
+    if (phone === "") {
+        alert("Please enter your phone number.");
+        return;
+    }
+
+    reminderActive = true;
+
+    document.getElementById("status").innerHTML =
+        "● Reminder is ACTIVE";
+
+    document.getElementById("status").className =
+        "status active";
+
+    remainingSeconds = 300;
+
+    sendSMS(phone);
+
+    startCountdown();
+}
+
+
+function sendSMS(phone) {
+
+    const message =
+        "Don't forget to take your things!";
+
+    window.location.href =
+        "sms:" + phone +
+        "?body=" +
+        encodeURIComponent(message);
+}
+
+
+function startCountdown() {
+
+    clearInterval(countdown);
+
+    countdown = setInterval(function() {
+
+        if (!reminderActive) {
+            clearInterval(countdown);
+            return;
+        }
+
+        remainingSeconds--;
+
+        let minutes =
+            Math.floor(remainingSeconds / 60);
+
+        let seconds =
+            remainingSeconds % 60;
+
+        document.getElementById("timer").innerHTML =
+            "Next reminder in: " +
+            minutes + ":" +
+            String(seconds).padStart(2, "0");
+
+        if (remainingSeconds <= 0) {
+
+            const phone =
+                document.getElementById("phone").value;
+
+            sendSMS(phone);
+
+            remainingSeconds = 300;
+        }
+
+    }, 1000);
+}
+
+
+function stopReminder() {
+
+    reminderActive = false;
+
+    clearInterval(countdown);
+
+    document.getElementById("status").innerHTML =
+        "● Reminder is INACTIVE";
+
+    document.getElementById("status").className =
+        "status inactive";
+
+    document.getElementById("timer").innerHTML =
+        "Reminder stopped.";
+}
+
+</script>
 
 </body>
 </html>
